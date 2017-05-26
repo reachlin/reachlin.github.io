@@ -4,8 +4,8 @@ title: main page
 
 ## Welcome to reachlin's page
 
-This web site is for my development nodes.
+{{ site.github.project_tagline }}
 
 ### Support or Contact
 
-[email](emailto:reachlin@gmail.com)
+[email](mailto:reachlin@gmail.com)

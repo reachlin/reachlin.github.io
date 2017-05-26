@@ -8,6 +8,6 @@ title: main page
 - [{{ post.title }}]({{ post.url }})
 {% endfor %}
 
-### Support or Contact
+## Support or Contact
 
 [email](mailto:reachlin@gmail.com)

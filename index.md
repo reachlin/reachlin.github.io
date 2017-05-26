@@ -2,10 +2,6 @@
 title: main page
 ---
 
-## Welcome to reachlin's page
-
-{{ site.github.project_tagline }}
-
 ## Notes
 
 {% for post in site.posts %}

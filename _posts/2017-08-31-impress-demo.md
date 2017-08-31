@@ -9,10 +9,9 @@ data:
   y: 2000
   scale: 3
 
+sections:
+  - The first page
+  - The Second page
+  - The third page
 ---
 
-### Jekyll
-
-A blog-aware static site generator...
-
-That can do **so** much more!

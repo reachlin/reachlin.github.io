@@ -20,9 +20,9 @@
     <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
 </div>
 <div id="impress">
-  <div id="bored" class="step slide" data-x="{{page.data.x}}" data-y="{{page.data.y}}" data-scale="{{page.data.scale}}">
-  {{content}}
-  </div>
+{% for section in page.sections %}
+  <div class="step">{{ section | textilize }}</div>
+{% endfor %}
 </div>
 <div class="hint">
     <p>Use a spacebar or arrow keys to navigate</p>

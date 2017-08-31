@@ -1,5 +1,5 @@
 ---
-title: impress demo
+title: Impress Demo.
 layout: impress
 slug: slide-down
 classes: [text-center]
@@ -15,13 +15,13 @@ sections:
   - The third page
 ---
 
-# section 1
-section 1 text
 
-# section 2
+section 1 text
+- one
+- two
+- three
+
 section 2 text
 
-# section 3
-## section 3-1
 setion 3 text
 

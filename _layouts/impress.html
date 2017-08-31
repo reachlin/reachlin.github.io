@@ -35,7 +35,8 @@ if ("ontouchstart" in document.documentElement) {
 <script>
 $(document).ready(function(){
   impress().init();
-  $("#impress")("div").addClass("step");
+  $("#impress").children("p").addClass("step slide")
+  $("#impress").children("div").remove();
 });
 </script>
 </body>

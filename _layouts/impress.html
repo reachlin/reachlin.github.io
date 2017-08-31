@@ -30,7 +30,13 @@ if ("ontouchstart" in document.documentElement) {
     document.querySelector(".hint").innerHTML = "<p>Tap on the left or right to navigate</p>";
 }
 </script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="/js/impress.js"></script>
-<script>impress().init();</script>
+<script>
+$(document).ready(function(){
+  impress().init();
+  $("#impress")("div").addClass("step");
+});
+</script>
 </body>
 </html>

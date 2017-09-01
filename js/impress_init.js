@@ -7,8 +7,8 @@ $(document).ready(function(){
     if (h1 && h1[1]) {
       meta = h1[1].split(",");
     }
-    var div = $("<div class='"+meta[0]+"' data-x='"+meta[1]+"' data-y='"+meta[2]+"' data-rotate='"+meta[3]+"' data-scale='"+meta[4]+"'>"+h1[0]+"</div>");
-    div.append($(this)).append(onepage);
+    var div = $("<div class='"+meta[0]+"' data-x='"+meta[1]+"' data-y='"+meta[2]+"' data-rotate='"+meta[3]+"' data-scale='"+meta[4]+"'></div>");
+    div.append("<h1>"+h1[0]+"</h1>").append(onepage);
     $("#impress").append(div);
   });
   impress().init();

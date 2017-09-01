@@ -15,13 +15,15 @@ sections:
   - The third page
 ---
 
-
+# Page 1
 section 1 text
 - one
 - two
 - three
 
+# Page 2
 section 2 text
 
+# Page 3
 setion 3 text
 

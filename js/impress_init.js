@@ -12,4 +12,5 @@ $(document).ready(function(){
     $("#impress").append(div);
   });
   impress().init();
+  $("#pages").remove();
 });

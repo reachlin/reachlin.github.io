@@ -1,7 +1,7 @@
 $(document).ready(function(){
   impress().init();
   var slides = [];
-  $("#pages div").children("h1").each(function(index){
+  $("#pages").children("h1").each(function(index){
     var onepage = $(this).nextUntil("h1");
     var div = $("#impress").add("div");
     div.addClass("step");

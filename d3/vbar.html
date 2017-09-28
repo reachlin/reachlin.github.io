@@ -56,6 +56,7 @@ d3.csv("sample.csv", type, function(error, data) {
   var bar = chart.selectAll(".bar")
       .data(data)
     .enter().append("rect")
+      .attr("y", function(d, i) { return i * barHeight; })
       .attr("width", function(d) { return x(d.value); })
       .attr("height", barHeight - 1);
 

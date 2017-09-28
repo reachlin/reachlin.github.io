@@ -57,7 +57,6 @@ d3.csv("sample.csv", type, function(error, data) {
       .data(data)
       .enter().append("rect")
       .attr("class", "bar")
-      .attr("y", function(d) { return d.name; })
       .attr("width", function(d) { return x(d.value); })
       .attr("height", barHeight - 1);
 

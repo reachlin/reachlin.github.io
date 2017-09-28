@@ -39,11 +39,12 @@ var chart = d3.select(".chart")
 
 d3.csv("sample.csv", type, function(error, data) {
   x.domain([0, d3.max(data, function(d) { return d.value; })]);
+  y.domain(data.map(function(d) { return d.name; }));
 
   chart.attr("height", barHeight * data.length);
 
   var y = d3.scale.ordinal()
-    .rangeRoundBands([0, data.length], .1);
+    .rangeRoundBands([data.length, 0], .1);
 
   var yAxis = d3.svg.axis()
     .scale(y)

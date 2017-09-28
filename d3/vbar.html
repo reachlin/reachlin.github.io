@@ -40,7 +40,7 @@ var chart = d3.select(".chart")
     .attr("width", width);
 
 d3.csv("sample.csv", type, function(error, data) {
-  chart.attr("height", barHeight * data.length)
+  chart = chart.attr("height", barHeight * data.length)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 

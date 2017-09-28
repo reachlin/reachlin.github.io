@@ -35,11 +35,11 @@ var x = d3.scale.linear()
     .range([0, width]);
 
 var chart = d3.select(".chart")
-    .attr("width", width);
+    .attr("width", 800);
 
 d3.csv("sample.csv", type, function(error, data) {
   height = barHeight * data.length
-  chart = chart.attr("height", height)
+  chart = chart.attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 

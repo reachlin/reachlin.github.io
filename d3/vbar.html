@@ -6,6 +6,12 @@
   fill: steelblue;
 }
 
+.bartxt {
+  fill: white;
+  font: 10px sans-serif;
+  text-anchor: end;
+}
+
 .axis text {
   font: 10px sans-serif;
 }
@@ -58,15 +64,16 @@ d3.csv("sample.csv", type, function(error, data) {
       .call(yAxis);
 
   var bar = chart.selectAll(".bar")
-      .data(data)
-    .enter().append("g");
+      .data(data).enter().append("g");
 
-  bar.attr("class", "bar")
+  bar.append("rect")
+      .attr("class", "bar")
       .attr("y", function(d, i) { return i * barHeight; })
       .attr("width", function(d) { return x(d.value); })
       .attr("height", barHeight - 1);
 
   bar.append("text")
+      .attr("class", "bartxt")
       .attr("x", function(d) { return x(d.value) - 3; })
       .attr("y", barHeight / 2)
       .attr("dy", ".35em")

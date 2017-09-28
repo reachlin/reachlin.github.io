@@ -53,12 +53,9 @@ d3.csv("sample.csv", type, function(error, data) {
       .attr("class", "y axis")
       .call(yAxis);
 
-  var bar = chart.selectAll("g")
+  var bar = chart.selectAll(".bar")
       .data(data)
-    .enter().append("g")
-      .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
-
-  bar.append("rect")
+    .enter().append("rect")
       .attr("width", function(d) { return x(d.value); })
       .attr("height", barHeight - 1);
 

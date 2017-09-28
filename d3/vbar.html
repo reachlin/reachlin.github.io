@@ -17,7 +17,7 @@
 <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script>
 
-var width = 420,
+var width = 800,
     barHeight = 20;
 
 var x = d3.scale.linear()
@@ -30,6 +30,17 @@ d3.csv("sample.csv", type, function(error, data) {
   x.domain([0, d3.max(data, function(d) { return d.value; })]);
 
   chart.attr("height", barHeight * data.length);
+
+  var y = d3.scale.ordinal()
+    .rangeRoundBands([data.length, 0], .1);
+
+  var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+  chart.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
 
   var bar = chart.selectAll("g")
       .data(data)

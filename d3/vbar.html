@@ -2,6 +2,17 @@
 <meta charset="utf-8">
 <style>
 
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
 .chart rect {
   fill: steelblue;
 }
@@ -32,7 +43,7 @@ d3.csv("sample.csv", type, function(error, data) {
   chart.attr("height", barHeight * data.length);
 
   var y = d3.scale.ordinal()
-    .rangeRoundBands([data.length, 0], .1);
+    .rangeRoundBands([0, data.length], .1);
 
   var yAxis = d3.svg.axis()
     .scale(y)

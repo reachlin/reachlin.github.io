@@ -26,7 +26,7 @@
 <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script>
 
-var margin = {top: 20, right: 30, bottom: 30, left: 40};
+var margin = {top: 20, right: 30, bottom: 30, left: 80};
 
 var width = 800 - margin.left - margin.right,
     barHeight = 20;
@@ -59,8 +59,9 @@ d3.csv("sample.csv", type, function(error, data) {
 
   var bar = chart.selectAll(".bar")
       .data(data)
-    .enter().append("rect")
-      .attr("class", "bar")
+    .enter().append("g");
+
+  bar.attr("class", "bar")
       .attr("y", function(d, i) { return i * barHeight; })
       .attr("width", function(d) { return x(d.value); })
       .attr("height", barHeight - 1);

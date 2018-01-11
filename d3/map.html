@@ -30,8 +30,8 @@
   <script>
 
     // Set the dimensions of the map
-    var width  = 960,
-        height = 480;
+    var width  = 1260,
+        height = 800;
 
     // Create a selection for the container div and append the svg element
     var div = d3.select('#map-container'),
@@ -54,7 +54,7 @@
       .step([10, 10]);
 
     // Retrieve the geographic data asynchronously
-    d3.json('land.geojson', function(err, data) {
+    d3.json('world.json', function(err, data) {
 
       // Throw errors on getting or parsing the file
       if (err) { throw err; }

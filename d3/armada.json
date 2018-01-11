@@ -2,15 +2,15 @@
 "type": "FeatureCollection",
 "features": [
 { "type": "Feature",
-  "properties": { "id": "us-south", "caption":"us-south"},
-  "geometry": { "type": "Point", "coordinates": [-150,-20]}
+  "properties": { "id": "us-east", "caption":"us-east"},
+  "geometry": { "type": "Point", "coordinates": [-150,0]}
 },
 { "type": "Feature",
   "properties": { "id": "center", "caption":"world center"},
   "geometry": { "type": "Point", "coordinates": [0,0]}
 },
 { "type": "Feature",
-  "properties": { "id": "us-east", "caption":"us-east"},
-  "geometry": { "type": "Point", "coordinates": [-130,-40]}
+  "properties": { "id": "us-south", "caption":"us-south"},
+  "geometry": { "type": "Point", "coordinates": [-110,30]}
 }
 ]}

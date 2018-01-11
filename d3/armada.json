@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"features": [
+{ "type": "Feature",
+  "properties": { "id": "us-south", "caption":"us-south"},
+  "geometry": { "type": "Point", "coordinates": [0,0]}
+},
+{ "type": "Feature",
+  "properties": { "id": "us-east", "caption":"us-east"},
+  "geometry": { "type": "Point", "coordinates": [10,0]}
+}
+]}

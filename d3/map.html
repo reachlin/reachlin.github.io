@@ -34,9 +34,9 @@
   }
 
   .circle {
-    fill: #FF0000;
-    stroke: #00FF00;
-    stroke-width: 10;
+    fill: #0000EE;
+    stroke: #0000FF;
+    stroke-width: 1;
   }
 
   .graticule {
@@ -103,18 +103,11 @@
       land.attr('d', pathGenerator);
       land.exit().remove();
 
-      // circle
-      circles = {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [10, 10.1]
-        },
-        "properties": {
-          "name": "Test"
-        }
-      };
-      var circle = svg.selectAll('path.circle').data([circles]);
+    });
+
+    d3.json('armada.json', function(err, data) {
+      // aramada data centers as circles
+      var circle = svg.selectAll('path.circle').data([data]);
 
       circle.enter().append('path').classed('circle', true);
       circle.attr('d', pathGenerator);

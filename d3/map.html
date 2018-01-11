@@ -77,11 +77,11 @@
       if (err) { throw err; }
 
       // Shpere
-      var sphere = svg.selectAll('path.sphere').data([{type: 'Sphere'}]);
+      //var sphere = svg.selectAll('path.sphere').data([{type: 'Sphere'}]);
 
-      sphere.enter().append('path').classed('sphere', true);
-      sphere.attr('d', pathGenerator);
-      sphere.exit().remove();
+      //sphere.enter().append('path').classed('sphere', true);
+      //sphere.attr('d', pathGenerator);
+      //sphere.exit().remove();
 
       // Graticule lines (behind the land)
       var lines = svg.selectAll('path.graticule').data([graticule()]);

@@ -1,37 +1,54 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<style>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-.country {
-  fill: #ccc;
-  stroke: #fff;
-  stroke-width: .5px;
-  stroke-linejoin: round;
-}
+  <title>Map with Graticule</title>
 
-.graticule {
-  fill: none;
-  stroke: #000;
-  stroke-opacity: .3;
-  stroke-width: .5px;
-}
-
-.graticule.outline {
-  stroke: #333;
-  stroke-opacity: 1;
-  stroke-width: 1.5px;
-}
-
-</style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+</head>
 <body>
-<script src="//d3js.org/d3.v3.min.js"></script>
-<div id="map-container"></div>
+
+  <style>
+
+  body {
+    margin: 0;
+  }
+
+  svg {
+    margin: 5px;
+    background-color: #A7DBD8;
+  }
+
+  .sphere {
+    fill: none;
+    stroke: #79A09E;
+  }
+
+  .land {
+    fill: #E0E4CC;
+    stroke: #ACAF9F;
+    stroke-width: 1;
+  }
+
+  .graticule {
+    fill: none;
+    stroke: #79A09E;
+    stroke-width: 1;
+    stroke-dasharray: 1,1;
+  }
+
+  </style>
+
+  <div id="map-container"></div>
 
   <script>
 
     // Set the dimensions of the map
     var width  = 1260,
-        height = 800;
+        height = 780;
 
     // Create a selection for the container div and append the svg element
     var div = d3.select('#map-container'),
@@ -83,5 +100,6 @@
 
     });
   </script>
+
 </body>
 </html>

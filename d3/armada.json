@@ -3,7 +3,7 @@
 "features": [
 { "type": "Feature",
   "properties": { "id": "us-east", "caption":"us-east"},
-  "geometry": { "type": "Point", "coordinates": [-80,60]}
+  "geometry": { "type": "Point", "coordinates": [-75,55]}
 },
 { "type": "Feature",
   "properties": { "id": "center", "caption":"world center"},
@@ -11,6 +11,6 @@
 },
 { "type": "Feature",
   "properties": { "id": "us-south", "caption":"us-south"},
-  "geometry": { "type": "Point", "coordinates": [-100,40]}
+  "geometry": { "type": "Point", "coordinates": [-100,35]}
 }
 ]}

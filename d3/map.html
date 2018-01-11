@@ -109,7 +109,8 @@
         var circle = svg.selectAll('path.circle').data([data]);
 
         circle.enter().append('path').classed('circle', true);
-        circle.attr('d', pathGenerator);
+        circle.attr('d', pathGenerator)
+        .append('text').text(function(d){return d;});
         circle.exit().remove();
 
       });

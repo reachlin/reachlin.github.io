@@ -109,8 +109,7 @@
         var circle = svg.selectAll('path.circle').data([data]);
 
         circle.enter().append('path').classed('circle', true);
-        circle.attr('d', pathGenerator).on("mouseover", function() { this.style.stroke = "black"; })
-        .on("click", function(ele) { console.debug(ele); });
+        circle.attr('d', pathGenerator);
         circle.exit().remove();
 
       });

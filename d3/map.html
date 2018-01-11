@@ -7,116 +7,15 @@
 
   <title>Map with Graticule</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+  <script src="//datamaps.github.io/scripts/0.4.4/datamaps.world.min.js"></script>
 </head>
 <body>
 
-  <style>
-
-  body {
-    margin: 0;
-  }
-
-  svg {
-    margin: 5px;
-    background-color: #A7DBD8;
-  }
-
-  .sphere {
-    fill: none;
-    stroke: #79A09E;
-  }
-
-  .land {
-    fill: #E0E4CC;
-    stroke: #ACAF9F;
-    stroke-width: 1;
-  }
-
-  .circle {
-    fill: #0000EE;
-    stroke: #0000FF;
-    stroke-width: 1;
-  }
-
-  .graticule {
-    fill: none;
-    stroke: #79A09E;
-    stroke-width: 1;
-    stroke-dasharray: 1,1;
-  }
-
-  </style>
-
-  <div id="map-container"></div>
-
-  <script>
-
-    // Set the dimensions of the map
-    var width  = 1260,
-        height = 780;
-
-    // Create a selection for the container div and append the svg element
-    var div = d3.select('#map-container'),
-        svg = div.append('svg');
-
-    // Set the size of the SVG element
-    svg.attr('width', width).attr('height', height);
-
-    // Create and configure a geographic projection
-    var projection = d3.geo.equirectangular()
-      .translate([width / 2, height / 2])
-      .scale(width / (2 * Math.PI));
-
-    // Create and configure a path generator
-    var pathGenerator = d3.geo.path()
-      .projection(projection);
-
-    // Create and configure the graticule generator (one line every 20 degrees)
-    var graticule = d3.geo.graticule()
-      .step([10, 10]);
-
-    // Retrieve the geographic data asynchronously
-    d3.json('world.json', function(err, data) {
-
-      // Throw errors on getting or parsing the file
-      if (err) { throw err; }
-
-      // Shpere
-      var sphere = svg.selectAll('path.sphere').data([{type: 'Sphere'}]);
-
-      sphere.enter().append('path').classed('sphere', true);
-      sphere.attr('d', pathGenerator);
-      sphere.exit().remove();
-
-      // Graticule lines (behind the land)
-      var lines = svg.selectAll('path.graticule').data([graticule()]);
-
-      lines.enter().append('path').classed('graticule', true);
-      lines.attr('d', pathGenerator);
-      lines.exit().remove();
-
-      // Land
-      var land = svg.selectAll('path.land').data([data]);
-
-      land.enter().append('path').classed('land', true);
-      land.attr('d', pathGenerator);
-      land.exit().remove();
-
-      // armada data centers
-      d3.json('armada.json', function(err, data) {
-        // aramada data centers as circles
-        var circle = svg.selectAll('path.circle').data([data]);
-
-        circle.enter().append('path').classed('circle', true);
-        circle.attr('d', pathGenerator);
-        circle.exit().remove();
-
-      });
-
-    });
-
-  </script>
-
+<div id="container" style="position: relative; width: 1200px; height: 800px;"></div>
+<script>
+    var map = new Datamap({element: document.getElementById('container')});
+</script>
 </body>
 </html>

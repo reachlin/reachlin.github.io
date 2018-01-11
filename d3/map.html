@@ -106,12 +106,9 @@
       // armada data centers
       d3.json('armada.json', function(err, data) {
         // aramada data centers as circles
-        var circle = svg.selectAll('path.circle').data([data]);
-
-        circle.enter().append('path').classed('circle', true);
-        circle.attr('d', pathGenerator)
+        var circle = svg.selectAll('circle').data([data])
+        .append('circle').classed('circle', true)
         .append('text').text(function(d){return d;});
-        circle.exit().remove();
 
       });
 

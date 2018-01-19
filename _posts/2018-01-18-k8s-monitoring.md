@@ -90,7 +90,6 @@ Check your cluster status `bx cs clusters|grep normal` and make sure it is ready
 1. Get your cluster config.
 ```
 bx cs cluster-config lincai0118
-
 ```
 
 2. Install `kubectl`. If you use my container, it's already installed :) Please also make sure all worker nodes are in good shape.

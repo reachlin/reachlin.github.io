@@ -85,7 +85,9 @@ bx cs cluster-create --location $BX_LOCATION --public-vlan $BX_PUBLIC_VLAN --pri
 
 ## Deploy prometheus
 
-Check your cluster status `bx cs clusters|grep normal` and make sure it is ready before proceed. Normally this will take less than an hour.
+We will use prometheus plus blackbox to monitor any web service. The blackbox will check if configured URLs return 200. If not, it will report as metrics to prometheus. prometheus will ask alertmanager to send out alerts to pagerduty, slack, or any other output methods configured.
+
+Check your cluster status `bx cs clusters|grep normal` and make sure it is ready before proceeding. Normally this will take less than an hour.
 
 1. Get your cluster config.
 ```
@@ -100,14 +102,16 @@ kubectl get nodes
 
 3. Install prometheus. prometheus needs a config file [/etc/prometheus/prometheus.yml](https://github.com/reachlin/docker/blob/master/prometheus/k8smonitoring.yml#L14) to start up.
 
-4. Then we will import all configure files as a configmap of k8s, so we can mount it to prometheus, blackbox, or alertmanager containers as a file later.
+4. Then we will import all configure files as a configmap of k8s, so we can mount it to prometheus, blackbox, or alertmanager containers as a file. You can tweak these configures in the yml to bettter serve your specific purpose.
 
-5. We also need an alertmanger to send alerts to pagerduty, and a blackbox exporter to monitor our web services. All configurations are in [this file](https://github.com/reachlin/docker/blob/master/prometheus/k8smonitoring.yml). Please replace `$PD_KEY` with your own file, and add your web services to be monitored urls in [here](https://github.com/reachlin/docker/blob/master/prometheus/k8smonitoring.yml#L34), then apply the yml.
+5. We also need an alertmanger to send alerts to pagerduty, and a blackbox exporter to monitor the target web services. All configurations are in [the yml file](https://github.com/reachlin/docker/blob/master/prometheus/k8smonitoring.yml). Please replace `$PD_KEY` with your own key, and add your web service URLs to be monitored in [here](https://github.com/reachlin/docker/blob/master/prometheus/k8smonitoring.yml#L34), then apply the yml.
 ```
 kubectl apply -f k8smonitoring.yml
 ```
 
-6. For simplicity reasons, we use node port to expose our service. So your can open any worker public IP with port 30090 to view the promethus console.
+6. For simplicity reasons, I only use node port to expose our service. So your can open any worker public IP with port 30090 to view the promethus console.
 ```
 bx cs workers
 ```
+
+If you change any configure in the yml after you apply this yml, you can just apply it again. But remember to delete the pod, so the changes can be picked up by containers.

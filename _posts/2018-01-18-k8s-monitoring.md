@@ -119,3 +119,15 @@ If you change any configure in the yml after you apply this yml, you can just ap
 ## Advanced k8s monitoring
 
 If you want to get more k8s metrics from prometheus, you have to configure `<kubernetes_sd_config>` in prometheus yml. This [kube-prometheus](https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus) combines everything and provides an easy to install script. Please check it out.
+
+```
+apt-get update
+apt-get install git
+git clone https://github.com/coreos/prometheus-operator.git
+cd prometheus-operator/contrib/kube-prometheus/
+hack/cluster-monitoring/deploy 
+kubectl get ns
+kubectl get pods -o wide -n monitoring
+```
+
+By default, the promethues will listen on 30900, grafana on 30902, and alermanager on 30903 of any worker node.

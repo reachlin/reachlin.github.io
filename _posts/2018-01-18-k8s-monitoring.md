@@ -115,3 +115,7 @@ bx cs workers
 ```
 
 If you change any configure in the yml after you apply this yml, you can just apply it again. But remember to delete the pod, so the changes can be picked up by containers.
+
+## Advanced k8s monitoring
+
+If you want to get more k8s metrics from prometheus, you have to configure `<kubernetes_sd_config>` in prometheus yml. This [kube-prometheus](https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus) combines everything and provides an easy to install script. Please check it out.

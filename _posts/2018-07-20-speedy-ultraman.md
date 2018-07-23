@@ -6,7 +6,7 @@ title: 欧米茄 2018 超霸奥特曼限量版介绍
 
 译者注：在手表届，一些特别经典的款式会有自己的绰号。欧米茄超霸的绰号就是speedy。Speedy Tuesday是指欧米茄和Fratello联手综合了广大粉丝意见后推出的一系列超霸限量版。通常只有几千块，是广大手表爱好者追逐的热门。
 
-![]("https://hodinkee.imgix.net/uploads/images/1531228226018-fubovheyuxu-6886d375767086c3a93243ad3f5eaef7/Speedy_Tuesday_Ultraman_HERO.jpg?auto=format&ch=Width%2CDPR%2CSave-Data&dpr=2&fit=crop&fm=jpg&h=390&ixjsv=2.2.4&ixlib=rails-1.1.0&q=50&usm=12&w=690")
+![](https://hodinkee.imgix.net/uploads/images/1531228226018-fubovheyuxu-6886d375767086c3a93243ad3f5eaef7/Speedy_Tuesday_Ultraman_HERO.jpg?auto=format&ch=Width%2CDPR%2CSave-Data&dpr=2&fit=crop&fm=jpg&h=390&ixjsv=2.2.4&ixlib=rails-1.1.0&q=50&usm=12&w=690)
 
 作为去年欧米茄和Fratello手表发布的Speedy Tuesday限量版的后续产品，今年我们看到了星期二超霸奥特曼限量版（Speedy Tuesday Ultraman），这是对原版超霸奥特曼的致敬。除了独特的橙色秒针，最初的奥特曼超霸系列与标准的超霸系列相同。该型号的名字归功于它在1971年播出的电视节目“奥特曼的回归” - 奥特曼本人是一位极受欢迎的电视角色，最初出现于1966-67。由于在每一集中都包含了巨型怪物（kaiju是“奇怪的野兽”的日语），这个节目有时被描述为一个怪兽节目，而这又是tokusatsu（“特效”）类型的子类别。在这个节目中，奥特曼是一个仁慈的外星超级人物，他寄生在一个普通人的身体里。但是他有能力转变成巨大的，超级动力的奥特曼，以对抗威胁地球的怪物。问题是奥特曼只能在能量消耗之前奋战三分钟。
 

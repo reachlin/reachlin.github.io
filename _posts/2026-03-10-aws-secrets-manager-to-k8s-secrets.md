@@ -2,149 +2,173 @@
 title: syncing aws secrets manager to kubernetes secrets with lambda
 ---
 
-This is a write-up of a Terraform module I built to automatically sync AWS Secrets Manager secrets into Kubernetes secrets on EKS. The idea is simple: whenever a secret is updated in Secrets Manager, a Lambda fires and pushes the new value into the corresponding Kubernetes secret — no manual `kubectl` commands, no restarts needed.
+This is a write-up of a Terraform module I built to automatically sync a single AWS Secrets Manager secret into a Kubernetes secret on EKS. The idea is simple: whenever the secret is updated in Secrets Manager, a Lambda fires and pushes the new value into the corresponding Kubernetes secret.
 
 ## Why Not Just Use External Secrets Operator?
 
-[External Secrets Operator](https://external-secrets.io/) is the standard answer and works great. But sometimes you want something lighter that doesn't require installing a CRD-based operator into the cluster, especially when you just need a handful of secrets synced. A Lambda triggered by EventBridge is a minimal, auditable alternative.
+[External Secrets Operator](https://external-secrets.io/) is the standard answer and works great. But it runs as a long-lived service inside the cluster with broad read access to many secrets. The motivation here was the opposite: **one Lambda per secret, with the minimum possible permissions on both the AWS and Kubernetes sides**. A Lambda triggered by EventBridge is also simpler to audit — each invocation has a clear trigger and a CloudWatch log entry.
 
 ## Architecture
 
 ```
 Secrets Manager (PutSecretValue)
         |
-   EventBridge rule
+   EventBridge rule (exact secret ARN match)
         |
       Lambda
         |
-   EKS API (via pre-signed STS URL)
+   EKS API (pre-signed STS token)
         |
-  Kubernetes Secret (create or patch)
+  Kubernetes Secret (create or patch in one namespace)
 ```
 
-The Lambda authenticates to EKS using a pre-signed STS `GetCallerIdentity` URL — the same token-based auth that `aws eks get-token` produces. No `aws-iam-authenticator` binary needed inside the Lambda runtime.
+Each instance of this module manages exactly one secret-to-secret mapping. If you need five secrets synced, you instantiate the module five times — five Lambdas, five IAM roles, five RBAC bindings, each with no access beyond its own secret.
 
-## Lambda Auth to EKS
+## Tight Permissions by Design
 
-The trickiest part is getting the Lambda to talk to the EKS API server. EKS uses IAM authentication via a bearer token that encodes a pre-signed STS URL:
+### AWS Side
+
+The IAM policy is locked to a single secret ARN:
+
+```hcl
+{
+  Sid    = "SecretsManager"
+  Effect = "Allow"
+  Action = ["secretsmanager:GetSecretValue"]
+  # Secrets Manager appends a 6-char random suffix to ARNs
+  Resource = ["${data.aws_secretsmanager_secret.target.arn}-*"]
+}
+```
+
+The EventBridge rule also matches by exact ARN, not a prefix or wildcard:
+
+```hcl
+event_pattern = jsonencode({
+  source      = ["aws.secretsmanager"]
+  detail-type = ["AWS API Call via CloudTrail"]
+  detail = {
+    eventSource = ["secretsmanager.amazonaws.com"]
+    eventName   = ["PutSecretValue"]
+    requestParameters = {
+      secretId = [data.aws_secretsmanager_secret.target.arn]
+    }
+  }
+})
+```
+
+### Kubernetes Side
+
+The Kubernetes RBAC uses a namespace-scoped `Role` (not a `ClusterRole`) with `resource_names` locked to the single target secret:
+
+```hcl
+resource "kubernetes_role_v1" "midway_secret_writer" {
+  metadata {
+    name      = "${var.service}-${var.environment}-midway"
+    namespace = var.k8s_namespace
+  }
+  rule {
+    api_groups     = [""]
+    resources      = ["secrets"]
+    resource_names = [var.k8s_secret_name]   # one specific secret
+    verbs          = ["get", "create", "update", "patch"]
+  }
+}
+```
+
+The Lambda's IAM role is registered as an EKS access entry and bound to this Role — so it can only touch that one Kubernetes secret in that one namespace.
+
+## EKS Authentication from Lambda
+
+The Lambda authenticates to EKS using a pre-signed STS `GetCallerIdentity` URL — the same mechanism as `aws eks get-token`. No `aws-iam-authenticator` binary needed.
 
 ```python
-import boto3, base64, json
-from botocore.auth import SigV4Auth
-from botocore.awsrequest import AWSRequest
-from botocore.credentials import Credentials
+import base64
+import boto3
+import botocore.auth
+import botocore.awsrequest
 
-def get_eks_token(cluster_name, region):
-    session = boto3.session.Session()
+TOKEN_EXPIRY_SECONDS = 14 * 60  # EKS maximum is 15 minutes
+
+def _get_token(cluster_name, region, session):
     credentials = session.get_credentials().get_frozen_credentials()
 
     url = (
         f"https://sts.{region}.amazonaws.com/"
-        f"?Action=GetCallerIdentity&Version=2011-06-15"
-        f"&X-Amz-Expires=60"
+        "?Action=GetCallerIdentity&Version=2011-06-15"
     )
-    request = AWSRequest(method="GET", url=url, headers={
-        "x-k8s-aws-id": cluster_name
-    })
-    SigV4Auth(credentials, "sts", region).add_auth(request)
+    request = botocore.awsrequest.AWSRequest(
+        method="GET",
+        url=url,
+        headers={"x-k8s-aws-id": cluster_name},
+    )
+    signer = botocore.auth.SigV4QueryAuth(
+        credentials, "sts", region, expires=TOKEN_EXPIRY_SECONDS
+    )
+    signer.add_auth(request)
 
-    token = "k8s-aws-v1." + base64.urlsafe_b64encode(
-        request.url.encode()
-    ).decode().rstrip("=")
+    token = (
+        "k8s-aws-v1."
+        + base64.urlsafe_b64encode(request.url.encode()).rstrip(b"=").decode()
+    )
     return token
 ```
 
-This token is passed as a `Bearer` header to the EKS API server, which validates it against IAM.
+The cluster CA certificate is written to a temp file (the Kubernetes Python client requires a file path, not raw bytes), then deleted after the sync completes.
 
-## Syncing the Secret
+## Secret Sync and Merge Logic
 
-Once authenticated, the Lambda reads the secret value from Secrets Manager and creates or patches the Kubernetes secret:
+The sync is additive: AWS keys are added or updated in the Kubernetes secret, but keys that already exist in Kubernetes and are not present in the AWS secret are left untouched. This avoids wiping keys written by other systems.
 
 ```python
-def sync_secret(secret_arn, k8s_namespace, k8s_secret_name):
-    # Read from Secrets Manager
-    sm = boto3.client("secretsmanager")
-    value = sm.get_secret_value(SecretId=secret_arn)["SecretString"]
-    data = json.loads(value)
-
-    # Encode values as base64 for Kubernetes
-    encoded = {k: base64.b64encode(v.encode()).decode() for k, v in data.items()}
-
-    # Patch or create the Kubernetes secret
-    body = {
-        "apiVersion": "v1",
-        "kind": "Secret",
-        "metadata": {"name": k8s_secret_name, "namespace": k8s_namespace},
-        "data": encoded,
-    }
-    # PUT to /api/v1/namespaces/{namespace}/secrets/{name}
-    # falls back to POST if 404
-    ...
+def compute_merge(existing: dict, incoming: dict) -> dict:
+    incoming = {k: str(v) for k, v in incoming.items()}
+    added     = sorted(k for k in incoming if k not in existing)
+    updated   = sorted(k for k in incoming if k in existing and incoming[k] != existing[k])
+    unchanged = sorted(k for k in incoming if k in existing and incoming[k] == existing[k])
+    kept      = sorted(k for k in existing if k not in incoming)
+    merged    = {**existing, **incoming}
+    return {"merged": merged, "added": added, "updated": updated,
+            "unchanged": unchanged, "kept": kept}
 ```
 
-The merge logic is additive by default — existing keys not present in the Secrets Manager secret are preserved. This avoids wiping unrelated keys that other systems might have written.
+Both JSON and plain string secrets are supported. If the secret value isn't valid JSON, it's wrapped as `{"value": "<raw string>"}`.
 
-## IAM Permissions
+## Lambda Build — No Docker Required
 
-The Lambda needs two things:
-
-1. **Secrets Manager read access** — `secretsmanager:GetSecretValue` on the target secrets
-2. **EKS API access** — an `aws_eks_access_entry` plus a Kubernetes `ClusterRole` that allows `create`, `get`, `update`, `patch` on secrets in the target namespaces
-
-The Terraform module wires all of this up automatically, including the EKS access entry and the RBAC ClusterRoleBinding.
-
-## Terraform Module Structure
-
-```
-aws/midway/
-├── iam.tf        # Lambda execution role, Secrets Manager policy
-├── lambda.tf     # Lambda function, EventBridge rule + target
-├── rbac.tf       # Kubernetes ClusterRole + ClusterRoleBinding
-├── sg.tf         # Security group for Lambda VPC access
-├── variable.tf   # cluster_name, region, secret mappings
-├── versions.tf   # provider pins
-└── src/
-    ├── lambda_handler.py
-    └── midway/
-        ├── aws_secrets.py
-        ├── core.py
-        ├── eks.py
-        ├── k8s_secret.py
-        ├── merge.py
-        └── slack.py   # optional Slack notifications on sync
-```
-
-The Lambda code is packaged at plan time using a `null_resource` that runs `pip install` into a `.build/` directory, then zipped with `archive_file`. No Docker build step needed.
-
-## EventBridge Rule
+The Lambda package is built at Terraform plan time using a `null_resource`:
 
 ```hcl
-resource "aws_cloudwatch_event_rule" "secret_change" {
-  event_pattern = jsonencode({
-    source      = ["aws.secretsmanager"]
-    detail-type = ["AWS API Call via CloudTrail"]
-    detail = {
-      eventSource = ["secretsmanager.amazonaws.com"]
-      eventName   = ["PutSecretValue"]
-      requestParameters = {
-        secretId = [{ prefix = var.secret_prefix }]
-      }
-    }
-  })
+resource "null_resource" "build_lambda" {
+  triggers = {
+    requirements = filemd5("${path.module}/src/requirements.txt")
+    source_hash  = md5(join("", [
+      for f in sort(fileset("${path.module}/src/midway", "**/*.py")) :
+      filemd5("${path.module}/src/midway/${f}")
+    ]))
+    handler_hash = filemd5("${path.module}/src/lambda_handler.py")
+  }
+  provisioner "local-exec" {
+    command = <<-EOT
+      BUILD_DIR="${path.root}/.build/midway"
+      rm -rf "$BUILD_DIR" && mkdir -p "$BUILD_DIR"
+      pip install -r "${path.module}/src/requirements.txt" -t "$BUILD_DIR" --quiet
+      cp -r "${path.module}/src/midway" "$BUILD_DIR/"
+      cp "${path.module}/src/lambda_handler.py" "$BUILD_DIR/"
+    EOT
+  }
 }
 ```
 
-This triggers on any `PutSecretValue` call for secrets matching the configured prefix. CloudTrail must be enabled for this to work.
+The trigger hashes mean the package only rebuilds when the source actually changes.
 
-## Slack Notifications
+## Summary
 
-The module optionally posts to Slack on every sync, which makes it easy to audit what changed and when. The message includes the secret name, target namespace/secret, and whether it was a create or update.
+The key design decisions:
 
-## Limitations
+- **One module instance = one secret**. No shared service with broad access.
+- **IAM locked to a single secret ARN** — no wildcards.
+- **RBAC is a namespace-scoped `Role` with `resource_names`** — the Lambda literally cannot touch any other Kubernetes secret.
+- **EventBridge triggers on exact ARN match** — no accidental cross-secret triggers.
+- **Additive merge** — existing Kubernetes keys not in the AWS secret are preserved.
 
-- Only supports JSON-formatted secrets (not plain string values)
-- Lambda must be in the same VPC as the EKS cluster (or have network access to the API server endpoint)
-- CloudTrail must be enabled for EventBridge to receive Secrets Manager events
-- Token TTL is 60 seconds — Lambda cold starts on large functions occasionally approach this
-
-Overall this is a clean pattern for lightweight secret syncing without adding a full operator to your cluster.
+It's more infrastructure per secret than a shared operator, but the blast radius of any compromise is bounded to exactly one secret.

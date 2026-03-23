@@ -53,3 +53,9 @@ fluent-bit -c fluent-bit.conf
 ```
 
 The API key itself is stored in AWS Secrets Manager and injected into the Kong ECS container at startup via the ECS `secrets` field, then substituted into the Kong declarative config YAML by `envsubst` in the Docker entrypoint.
+
+## Vibe coding
+
+The whole thing — understanding the existing architecture, finding where changes needed to go across two unfamiliar repos, and implementing everything — took about half a day with Claude Code. Without it, a task like this would realistically take 2–3 days: reading through Terraform modules, tracing how Kong config is templated and deployed, figuring out the ECS task definition structure, and tracking down where secrets are stored and injected. The changes span two separate repos with different deployment pipelines, which adds coordination overhead even once you know what to change.
+
+Having an AI that can explore the codebase, explain what it finds, and make the edits while you stay in the loop cuts most of that ramp-up time. The architecture understanding came for free as a side effect of making the change.

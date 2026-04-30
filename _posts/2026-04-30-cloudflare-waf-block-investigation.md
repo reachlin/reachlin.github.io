@@ -11,7 +11,7 @@ Error 1020 specifically means Cloudflare's Firewall Rules (legacy) or WAF Custom
 ```
 HTTP/2 403
 server: cloudflare
-cf-ray: 9f4543c4289bd780-NRT
+cf-ray: a1b2c3d4e5f60000-NRT
 
 error code: 1020
 ```
@@ -55,9 +55,9 @@ A few things I learned about this dataset:
 The result came back:
 
 ```
-Rule ID : d0c88b552eec4c2fb5e3a274a3117188
+Rule ID : aabbcc1122334455aabbcc1122334455
 Source  : firewallrules
-Filter  : 0ba4b89ba3e349088f9e7fb829e6e3c6
+Filter  : 11223344556677889900aabbccddeeff
 ```
 
 ## The GraphQL rate limit mystery

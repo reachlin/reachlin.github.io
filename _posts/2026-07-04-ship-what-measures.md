@@ -1,0 +1,21 @@
+---
+title: ship what measures, shelve what doesn't
+---
+
+Spent the whole day on my paper-trading bot, and it turned into an accidental case study in letting backtests veto your own ideas. Five features built today; two got deployed, three got shelved — each decision made by a number, not a feeling.
+
+The day started with performance. The walk-forward backtest was recomputing indicators on a growing slice every bar — classic accidental O(n²). Two fixes: compute vol on a fixed 22-row tail (verified value-identical to 1e-15, just pandas rolling float noise), and read precomputed indicator rows instead of re-running the whole pipeline per bar. Full 11-year, 18-symbol backtest went from minutes to seconds. That speed mattered later: once a backtest costs 40 seconds, you stop arguing about ideas and just measure them.
+
+Then the fun part. My options-wheel strategy loses to buy-and-hold exactly on trending stocks — covered calls cap every rally. So: a "router" that predicts P(rally > 8% in 30 days) per symbol and holds shares uncapped instead of wheeling when it's confident. First predictor was LightGBM on technical features. Backtest verdict: worthless — best case +$1.4K on a $46K deficit, pure noise, holdout AUC ~0.5. Second predictor: Google's TimesFM, zero-shot forecasting the 30-day SMA direction. Verdict: recovered $25–29K of the deficit across a stable threshold plateau, and it held up in a 2024+ out-of-sample window (with the honest caveat that a foundation model's pretraining may brush your backtest years — the only clean data is live paper trading going forward). Same routing rule, different predictor, opposite outcome. The mechanism was never the problem; the prediction was.
+
+The deployment pattern I landed on: **mechanical proposes, LLM disposes**. The backtested rule generates the signal; the LLM overseer approves by default and vetoes only on context the models can't see (earnings, halts). Every veto is logged so I can measure whether the LLM's judgment helps or hurts versus the pure rule. No prompt-engineering hope allowed to silently replace a measured policy.
+
+The afternoon delivered the best negative results. I built a portfolio-level backtest — all symbols sharing one cash pool — to test capital-allocation policies. My "obvious" score (premium per day per collateral dollar) lost $47K versus dumb first-come-first-served at small capital: fat premium density is a high-IV signature, so the score systematically funded the riskiest names and starved the best one. A v2 with a per-symbol edge prior recovered half the gap in the full window, then a 2023+ window flipped the entire ranking. Conclusion by minimax regret: neutral ordering, plus one strictly-dominant tier (cash-freeing signals always jump the queue). Two days of "improvements" correctly reverted by their own measurements.
+
+One more role made the cut: buy quality dividend ETFs at the panic close (VIX ≥ 30), sell when recovery confirms. 19 real episodes since 2015: 15–16 wins per ETF. I doubted my own entry rule — buying into a crash feels like knife-catching — so I tested waiting for the first calm bar instead. Waiting cost 40% of the profit. Panic prices are the discount; by the calm bar, the bounce already happened. Also tested and excluded: long treasuries (6/19 wins — flight-to-safety is *expensive* at panic) and gold (profitable but only because of the recent gold bull).
+
+Ops bugs of the day, both found by just starting the container and watching: a market-closed day made `restart: unless-stopped` hot-loop the process every 5 seconds, spamming a Slack notification per cycle (fix: sleep until the next 9am ET check instead of exiting). And a YAML folded scalar (`command: >`) had preserved a newline before a more-indented continuation line, silently splitting my shell command in two — the `tee` that was supposed to persist logs had been connected to an empty statement for weeks. Compose commands are lists now.
+
+The weekend ends with an A/B experiment armed: two scanner instances in tmux, main branch versus feature branch, identical starting ledgers, same LLM, isolated state. Monday's open decides the next argument with data.
+
+Lesson of the day, twice confirmed: the ideas that survived measurement were not the ones I would have bet on in the morning.

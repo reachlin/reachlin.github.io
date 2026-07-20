@@ -2,15 +2,15 @@
 title: wiring up the helpdesk bot's vector memory
 ---
 
-Our Slack helpdesk bot has had a "look things up in a vector index" code path for a while, but today I found out it was only half real.
+Our Slack helpdesk bot has had a "look things up in a vector index" code path for a while, but today I found out the write side of it only ever lived on one laptop.
 
-## The half-built path
+## The shadow insert path
 
-The bot's read path was solid: embed the user's question with an OpenAI embedding model, query an S3-backed vector index, pull back the top match's stored text, and stuff it into the prompt as reference context before calling the LLM. Clean, working, in production.
+The bot's read path was solid: embed the user's question with an OpenAI embedding model, query an S3-backed vector index, pull back the top match's stored text, and stuff it into the prompt as reference context before calling the LLM. Clean, working, in production, checked into the repo like everything else.
 
-What didn't exist: any way to get knowledge *into* that index. There was an older insert function still wired into the code, but it turned out to be dead — a leftover from a previous vector-DB provider, fully commented out, silently returning `None` on every call. Nobody had touched it in a long time because nobody needed to; the index apparently got seeded once, manually, and then the code base just... queried it forever.
+The insert side was a different story. There *was* an insert function still wired into the code, but it turned out to be dead — a leftover from a previous vector-DB provider, fully commented out, silently returning `None` on every call. The actual way new knowledge got into the index was a Jupyter notebook, living locally on one person's machine, never committed anywhere shared. It worked, but "how do we add a new fact to the bot's knowledge" had an answer only one person knew, and it wasn't reproducible by anyone else, let alone by someone outside engineering.
 
-So "how do we add a new fact to the bot's knowledge" had no answer. Today's job was to build one — specifically for a small internal knowledge base file (think: "here's the Slack channel for IT issues," "here's who approves password resets") that's short today but will grow.
+So today's job was to turn a one-person local runbook into something anyone on the team could trigger safely — specifically for a small internal knowledge base file (think: "here's the Slack channel for IT issues," "here's who approves password resets") that's short today but will grow.
 
 ## The ingest side
 
@@ -37,4 +37,4 @@ The actual editors of this knowledge base are IT/HR staff, not engineers. They s
 
 ## Takeaway
 
-The interesting failure mode here wasn't a bug — it was a code path that looked complete because half of it worked *forever*, right up until someone needed the other half. Read paths get exercised on every request and get caught fast if they break. Write paths that only run once, at index-creation time, and then never again, can silently rot into total absence without anyone noticing — the read side has no way to tell "empty because nothing matched" apart from "empty because nothing's ever been written here in months."
+The interesting failure mode here wasn't a bug — it was a process that worked fine and was invisible in exactly the way that matters. A local notebook doing the job perfectly well, for the one person who knew it existed, looks identical from the outside to "nobody can do this." Read paths get exercised on every request and get caught fast if they break. Ad hoc write paths that live outside the repo can quietly become a single point of failure — not because they don't work, but because "works on my machine" was never the bar; "anyone on the team can run it, and it's reviewable when they do" is.
